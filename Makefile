@@ -4,9 +4,13 @@ COUNT_BINARY_FILE := data/pwned-count
 BINARY_FILES := $(SHA1_BINARY_FILE) $(COUNT_BINARY_FILE)
 HASH := FFFFFFFEE791CBAC0F6305CAF0CEE06BBE131160
 
-lookup: ./dist/binary-lookup $(BINARY_FILES)
-	$< $(HASH) $(BINARY_FILES)
-
+lookup: ./dist/binary-lookup ./dist/sha1 $(BINARY_FILES)
+	@if [ -z $(PASSWORD) ]; then \
+		($< $(HASH) $(BINARY_FILES));\
+	else \
+		(./dist/sha1 $(PASSWORD) | xargs -i $< {} $(BINARY_FILES));\
+	fi
+	
 read-sha1: ./dist/read-sha1-index $(SHA1_BINARY_FILE)
 	$< $(INDEX) $(SHA1_BINARY_FILE)	
 
@@ -27,4 +31,4 @@ watch:
 
 dist/%: src/%.c
 	mkdir -p dist
-	gcc $^ -o $@ -O3
+	gcc $^ -o $@ -O3 -lssl -lcrypto
