@@ -32,3 +32,12 @@ watch:
 dist/%: src/%.c
 	mkdir -p dist
 	gcc $^ -o $@ -O3 -lssl -lcrypto
+
+watch-test-pwnedlookup:
+	ls src/python-binding.c test.py Makefile | entr -sc 'make test-pwnedlookup'
+
+test-pwnedlookup: dist/pwnedlookup.so test.py
+	python test.py
+
+dist/pwnedlookup.so: src/python-binding.c
+	gcc -shared -O3 -lssl -lcrypto -fPIC $< -o $@ -I/usr/include/python3.8

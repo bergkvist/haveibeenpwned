@@ -15,14 +15,14 @@
 #define SHA1_UNCOMPRESSED_SIZE 40
 #define SHA1_COMPRESSED_SIZE 20
 
-void sha1_decompress(char output[SHA1_UNCOMPRESSED_SIZE], char input[SHA1_COMPRESSED_SIZE]) {
+void sha1_decompress(char output[SHA1_UNCOMPRESSED_SIZE], const char input[SHA1_COMPRESSED_SIZE]) {
     for (int i = 0; i < 20; i++) {
         sprintf(&output[2*i],   "%01X", (input[i] & 0xF0) >> 4);
         sprintf(&output[2*i+1], "%01X", (input[i] & 0x0F) >> 0);
     }
 }
 
-void sha1_compress(char output[SHA1_COMPRESSED_SIZE], char input[SHA1_UNCOMPRESSED_SIZE]) {
+void sha1_compress(char output[SHA1_COMPRESSED_SIZE], const char input[SHA1_UNCOMPRESSED_SIZE]) {
     #define HEX_TO_INT4(hex) \
         (((hex) >= '0' && (hex) <= '9') * ((hex) - '0') +\
          ((hex) >= 'A' && (hex) <= 'F') * ((hex) - 'A' + 10))
@@ -33,7 +33,7 @@ void sha1_compress(char output[SHA1_COMPRESSED_SIZE], char input[SHA1_UNCOMPRESS
     #undef HEX_TO_INT4
 }
 
-int sha1_compare_compressed(char h1[SHA1_COMPRESSED_SIZE], char h2[SHA1_COMPRESSED_SIZE]) {
+int sha1_compare_compressed(const char h1[SHA1_COMPRESSED_SIZE], const char h2[SHA1_COMPRESSED_SIZE]) {
     for (int i = 0; i < SHA1_COMPRESSED_SIZE; i++) {
         if (h1[i] == h2[i]) continue;
         if ((uint8_t)h2[i] > (uint8_t)h1[i]) return -1;

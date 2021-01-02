@@ -4,14 +4,14 @@
 #include <stdbool.h>
 #include <sys/time.h>
 #include <ctype.h>
+#include <openssl/sha.h>
 #include "sha1-compression.h"
-
 
 struct results_s { int32_t seek_count; int64_t match_index; int32_t match_count; };
 struct sha1_input { FILE* file; size_t max_index; char buffer[SHA1_COMPRESSED_SIZE]; };
 struct count_input { FILE* file; };
-void binary_file_search(struct results_s *results, struct sha1_input *sha1, char *hash);
-size_t number_of_matches(char* hash, char* sha1_filename, char* count_filename);
+void binary_file_search(struct results_s *results, struct sha1_input *sha1, const char *hash);
+size_t number_of_matches(const char* hash, const char* sha1_filename, const char* count_filename);
 void str_to_upper(char* str);
 
 int main(int argc, char **argv) {
@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     gettimeofday(&st, NULL);
 
     str_to_upper(hash);
-    int32_t match_count = number_of_matches(hash, sha1_filename, count_filename);
+    size_t match_count = number_of_matches(hash, sha1_filename, count_filename);
 
     gettimeofday(&et, NULL);
     long elapsed_micro_seconds = 1000000 * (et.tv_sec - st.tv_sec)
@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
     printf("# of leaks:  %'8d\n", match_count);
 }
 
-size_t number_of_matches(char* hash, char* sha1_filename, char* count_filename) {
+size_t number_of_matches(const char* hash, const char* sha1_filename, const char* count_filename) {
     struct count_input count;
     struct results_s results;
     struct sha1_input sha1;
@@ -61,7 +61,7 @@ size_t number_of_matches(char* hash, char* sha1_filename, char* count_filename) 
 }
 
 
-void binary_file_search(struct results_s *results, struct sha1_input *sha1, char *hash) {
+void binary_file_search(struct results_s *results, struct sha1_input *sha1, const char *hash) {
     char compressed_hash[SHA1_COMPRESSED_SIZE];
     sha1_compress(&compressed_hash[0], hash);
     results->seek_count = 0;
@@ -75,7 +75,8 @@ void binary_file_search(struct results_s *results, struct sha1_input *sha1, char
     printf("|     index | cmp | hash                                     |\n");
     printf("+-----------+-----+------------------------------------------+\n");
     #endif
-    while ((high + low) / 2 != guess) {
+    int max_iterations = 1000;
+    while ((high + low) / 2 != guess && max_iterations--) {
         results->seek_count++;
         guess = (low + high) / 2;
         fseek(sha1->file, SHA1_COMPRESSED_SIZE * guess, SEEK_SET);
@@ -106,5 +107,12 @@ void str_to_upper(char* str) {
     while(*c) {
         *c = toupper((unsigned char) *c);
         c++;
+    }
+}
+
+char hash_password(char result[40], const char* password) {
+    char *tmp = SHA1(password, strlen(password), NULL);
+    for (int i = 0; i < 20; i++) {
+        sprintf(&result[2*i], "%02X", tmp[i] & 0xFF);
     }
 }
