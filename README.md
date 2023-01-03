@@ -11,3 +11,6 @@ Contains 613,584,246 passwords.
 4. Contains a CPython extension for ease of use.
 
 On my SSD, the lookup + hash typically takes between 100 microseconds and 50 milliseconds. Around 30 random access operations (each reading 20 bytes) is needed to see if a password is among the 613,584,246 SHA1 hashes. (25GB uncompressed)
+
+## Related links
+- https://news.ycombinator.com/item?id=34020067
